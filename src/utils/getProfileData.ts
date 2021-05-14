@@ -7,13 +7,12 @@ export async function getProfileData(
 ): Promise<FormattedProfileData> {
   const parser = new DOMParser();
 
-  const fetchOptions = {} as any;
-  const {accessToken} = await requestAccessToken(url, isCore);
-  fetchOptions.headers = {Authorization: `Bearer ${accessToken}`};
+  // const fetchOptions = {} as any;
+  // const {accessToken} = await requestAccessToken(url, isCore);
+  // fetchOptions.headers = {Authorization: `Bearer ${accessToken}`};
 
   url.searchParams.set('profile_liquid', 'true');
-  const response = await fetch(url.href, fetchOptions);
-
+  const response = await fetch(url.href);
   if (!response.ok) throw Error(response.statusText);
 
   const html = await response.text();
@@ -34,22 +33,22 @@ function noProfileFound(document: HTMLDocument) {
   return document.querySelector('#liquidProfileData') === null;
 }
 
-function requestAccessToken(
-  {origin}: URL,
-  isCore: boolean,
-): Promise<SubjectAccessToken> {
-  return new Promise((resolve, reject) => {
-    return chrome.runtime.sendMessage(
-      {type: 'request-core-access-token', origin, isCore},
-      ({token, error}) => {
-        if (error) {
-          return reject(error);
-        }
-        return resolve(token);
-      },
-    );
-  });
-}
+// function requestAccessToken(
+//   {origin}: URL,
+//   isCore: boolean,
+// ): Promise<SubjectAccessToken> {
+//   return new Promise((resolve, reject) => {
+//     return chrome.runtime.sendMessage(
+//       {type: 'request-core-access-token', origin, isCore},
+//       ({token, error}) => {
+//         if (error) {
+//           return reject(error);
+//         }
+//         return resolve(token);
+//       },
+//     );
+//   });
+// }
 
 function formatLiquidProfileData(
   entries: ProfileNode[],

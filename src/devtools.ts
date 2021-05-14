@@ -28,9 +28,9 @@ let liquidFlamegraph: LiquidFlamegraph;
 
 chrome.devtools.inspectedWindow.eval(
   `typeof window.Shopify === 'object'`,
-  function(isShopifyStore: boolean) {
-    if (isShopifyStore) {
-      chrome.devtools.panels.create('Shopify', '', './devtools.html');
+  function(_: boolean) {
+    if (true) {
+      chrome.devtools.panels.create('Thinkific', '', './devtools.html');
 
       if (getBrowserTheme() === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
@@ -84,9 +84,9 @@ function clear() {
 function getInspectedWindowURL(): Promise<URL> {
   return new Promise(resolve => {
     chrome.devtools.inspectedWindow.eval(
-      `(/myshopify\\.io/.test(document.location.host) ? document.location.host : Shopify.shop) + document.location.pathname + document.location.search`,
+      `document.location.protocol + '//' + document.location.host + document.location.pathname + document.location.search`,
       function(currentUrl: string) {
-        resolve(new URL(`https://${currentUrl}`));
+        resolve(new URL(currentUrl));
       },
     );
   });
@@ -155,7 +155,6 @@ async function refreshPanel() {
       .querySelector(selectors.flamegraphWrapper)!
       .classList.remove('hide');
   } catch (error) {
-    console.error(error);
     document.querySelector(selectors.flamegraphWrapper)!.classList.add('hide');
     document
       .querySelector(selectors.notProfilableMessage)!

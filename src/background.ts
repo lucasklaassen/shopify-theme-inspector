@@ -1,31 +1,31 @@
 import {env, RenderBackend} from './env';
-import {isDev, Oauth2} from './utils';
+// import {isDev, Oauth2} from './utils';
 
-const COLLABORATORS_SCOPE =
-  'https://api.shopify.com/auth/partners.collaborator-relationships.readonly';
-let shopifyEmployee = false;
+// const COLLABORATORS_SCOPE =
+//   'https://api.shopify.com/auth/partners.collaborator-relationships.readonly';
+// let shopifyEmployee = false;
 let renderBackend = RenderBackend.StorefrontRenderer;
 
-function getOauth2Client(origin: string) {
-  const identityDomain = isDev(origin)
-    ? env.DEV_OAUTH2_DOMAIN
-    : env.OAUTH2_DOMAIN;
-  const clientId = isDev(origin)
-    ? env.DEV_OAUTH2_CLIENT_ID
-    : env.OAUTH2_CLIENT_ID;
-  const clientAuthParams = [
-    [
-      'scope',
-      `openid profile ${
-        shopifyEmployee === true ? 'employee' : ''
-      } ${Object.values(env.DEVTOOLS_SCOPE).join(' ')} ${COLLABORATORS_SCOPE}`,
-    ],
-  ];
+// function getOauth2Client(origin: string) {
+//   const identityDomain = isDev(origin)
+//     ? env.DEV_OAUTH2_DOMAIN
+//     : env.OAUTH2_DOMAIN;
+//   const clientId = isDev(origin)
+//     ? env.DEV_OAUTH2_CLIENT_ID
+//     : env.OAUTH2_CLIENT_ID;
+//   const clientAuthParams = [
+//     [
+//       'scope',
+//       `openid profile ${
+//         shopifyEmployee === true ? 'employee' : ''
+//       } ${Object.values(env.DEVTOOLS_SCOPE).join(' ')} ${COLLABORATORS_SCOPE}`,
+//     ],
+//   ];
 
-  return new Oauth2(clientId, identityDomain, {
-    clientAuthParams,
-  });
-}
+//   return new Oauth2(clientId, identityDomain, {
+//     clientAuthParams,
+//   });
+// }
 
 // Change icon from colored to greyscale depending on whether or not Shopify has
 // been detected
@@ -47,24 +47,17 @@ function setIconAndPopup(active: string, tabId: number) {
   chrome.pageAction.show(tabId);
 }
 
-function getSubjectId(oauth: Oauth2, origin: string) {
-  if (isDev(origin)) {
-    return oauth.fetchClientId(env.DEV_OAUTH2_SUBJECT_NAME[renderBackend]);
-  }
-  return Promise.resolve(env.OAUTH2_SUBJECT_ID[renderBackend]);
-}
+// function getSubjectId(oauth: Oauth2, origin: string) {
+//   if (isDev(origin)) {
+//     return oauth.fetchClientId(env.DEV_OAUTH2_SUBJECT_NAME[renderBackend]);
+//   }
+//   return Promise.resolve(env.OAUTH2_SUBJECT_ID[renderBackend]);
+// }
 
 chrome.runtime.onMessage.addListener(({type, origin}, _, sendResponse) => {
   if (type !== 'signOut') return false;
 
-  getOauth2Client(origin)
-    .logoutUser()
-    .then(() => {
-      sendResponse();
-    })
-    .catch(({message}) => {
-      sendResponse({error: message});
-    });
+  sendResponse();
 
   return true;
 });
@@ -72,16 +65,16 @@ chrome.runtime.onMessage.addListener(({type, origin}, _, sendResponse) => {
 // Create a listener which handles when detectShopify.js, which executes in the
 // the same context as a tab, sends the results of of whether or not a Shopify
 // employee was detected
-chrome.runtime.onMessage.addListener((event, sender) => {
-  if (
-    sender.tab &&
-    sender.tab.id &&
-    event.type === 'detect-shopify-employee' &&
-    event.hasDetectedShopifyEmployee === true
-  ) {
-    shopifyEmployee = true;
-  }
-});
+// chrome.runtime.onMessage.addListener((event, sender) => {
+//   if (
+//     sender.tab &&
+//     sender.tab.id &&
+//     event.type === 'detect-shopify-employee' &&
+//     event.hasDetectedShopifyEmployee === true
+//   ) {
+//     shopifyEmployee = true;
+//   }
+// });
 
 // Create a listener which handles when detectShopify.js, which executes in the
 // the same context as a tab, sends the results of of whether or not Shopify was
@@ -99,15 +92,7 @@ chrome.runtime.onMessage.addListener(({type, origin}, _, sendResponse) => {
     return false;
   }
 
-  getOauth2Client(origin)
-    .authenticate()
-    .then(() => {
-      sendResponse({success: true});
-    })
-    .catch(error => {
-      console.log('Authentication Error:', error.message);
-      sendResponse({success: false, error});
-    });
+  sendResponse({success: true});
 
   return true;
 });
@@ -124,31 +109,20 @@ chrome.runtime.onMessage.addListener(
       ? RenderBackend.Core
       : RenderBackend.StorefrontRenderer;
 
-    const params = [
-      [
-        'scope',
-        `${shopifyEmployee === true ? 'employee' : ''} ${
-          env.DEVTOOLS_SCOPE[renderBackend]
-        } ${COLLABORATORS_SCOPE}`,
-      ],
-    ];
+    // const params = [
+    //   [
+    //     'scope',
+    //     `${shopifyEmployee === true ? 'employee' : ''} ${
+    //       env.DEVTOOLS_SCOPE[renderBackend]
+    //     } ${COLLABORATORS_SCOPE}`,
+    //   ],
+    // ];
 
-    // SFR does not need a destination.
-    const destination =
-      renderBackend === RenderBackend.Core ? `${origin}/admin` : '';
+    // // SFR does not need a destination.
+    // const destination =
+    //   renderBackend === RenderBackend.Core ? `${origin}/admin` : '';
 
-    const oauth = getOauth2Client(origin);
-
-    getSubjectId(oauth, origin)
-      .then(subjectId => {
-        return oauth.getSubjectAccessToken(destination, subjectId, params);
-      })
-      .then(token => {
-        sendResponse({token});
-      })
-      .catch(error => {
-        sendResponse({error});
-      });
+    sendResponse({token: 123});
 
     return true;
   },
@@ -159,15 +133,7 @@ chrome.runtime.onMessage.addListener(
 chrome.runtime.onMessage.addListener(({type, origin}, _, sendResponse) => {
   if (type !== 'request-user-name') return false;
 
-  getOauth2Client(origin)
-    .getUserInfo()
-    .then(userInfo => {
-      const name = userInfo.given_name;
-      sendResponse({name});
-    })
-    .catch(error => {
-      sendResponse({error});
-    });
+  sendResponse({name: 'lucas'});
 
   return true;
 });
@@ -177,14 +143,7 @@ chrome.runtime.onMessage.addListener(({type, origin}, _, sendResponse) => {
 chrome.runtime.onMessage.addListener(({type, origin}, _, sendResponse) => {
   if (type !== 'request-auth-status') return false;
 
-  getOauth2Client(origin)
-    .hasValidClientToken()
-    .then(isLoggedIn => {
-      sendResponse({isLoggedIn});
-    })
-    .catch(error => {
-      sendResponse({error});
-    });
+  sendResponse({isLoggedIn: true});
 
   return true;
 });
